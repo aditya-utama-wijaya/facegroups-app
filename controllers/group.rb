@@ -1,23 +1,30 @@
 # frozen_string_literal: true
 
+# Groupsters web application
 class Groupsters < Sinatra::Base
-  get '/group/?' do
-    @data = GetAllGroups.call
-
+  # Home page: show list of all groups
+  get '/?' do
+    result = GetAllGroups.call
+    if result.success?
+      @data = result.value
+    else
+      flash[:error] = result.value.message
+    end
+    
     slim :group
   end
 
+  # Add a new Facebook group to our systems
   post '/group/?' do
     url_request = UrlRequest.call(params)
     result = CreateNewGroup.call(url_request)
 
     if result.success?
-      puts "SUCCESS: #{result.value}"
+      flash[:notice] = 'Group successfully added'
     else
-      error_presenter = ErrorPresenter.new(result.value)
-      puts "ERROR: #{error.to_interface_message}"
+      flash[:error] = result.value.message
     end
 
-    redirect '/group'
+    redirect '/'
   end
 end
